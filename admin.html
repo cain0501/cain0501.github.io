@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>月饼图册 · 数据后台</title>
+<style>
+  :root{
+    --bg:#f7f5f2; --card:#fff; --text:#241b16; --muted:#8a7a70; --line:#e9e2db;
+    --brand:#b3542e; --brand-soft:#f7ebe3; --gold:#c9a24b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+  button{cursor:pointer;font-family:inherit}
+  input,select,textarea{font-family:inherit;font-size:14px}
+
+  /* 登录 */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  /* 视图切换：hidden 时强制不显示（覆盖 .login-wrap 的 display:flex） */
+  [hidden]{display:none !important}
+  .login-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:32px;width:100%;max-width:360px;box-shadow:0 8px 30px rgba(0,0,0,.06)}
+  .login-card h1{font-size:20px;margin-bottom:4px}
+  .login-card .sub{font-size:12px;color:var(--muted);margin-bottom:20px}
+  .login-card input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;outline:none}
+  .login-card input:focus{border-color:var(--brand)}
+  .login-card button{width:100%;padding:12px;background:var(--brand);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600}
+  .err{color:#c0392b;font-size:12px;margin-top:10px;min-height:16px}
+
+  /* 顶栏 */
+  .topbar{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);z-index:20}
+  .top-inner{max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:16px}
+  .top-inner .logo{font-size:18px;font-weight:700}
+  .top-inner nav{display:flex;gap:6px}
+  .top-inner nav button{padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:13px}
+  .top-inner nav button.active{background:var(--brand-soft);color:var(--brand);border-color:var(--brand)}
+  .spacer{flex:1}
+  .ghost-btn{padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:13px;color:var(--muted)}
+
+  /* 主体 */
+  main{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .toolbar h2{font-size:16px}
+  .primary-btn{padding:9px 16px;background:var(--brand);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:600}
+
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{padding:10px 12px;text-align:left;font-size:13px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{background:#faf8f5;color:var(--muted);font-weight:600;font-size:12px}
+  tr:last-child td{border-bottom:none}
+  .thumb-sm{width:44px;height:44px;object-fit:cover;border-radius:8px;background:#efe9e2;display:block}
+  .row-actions{display:flex;gap:6px}
+  .row-actions button{padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:#fff;font-size:12px}
+  .row-actions button.danger{color:#c0392b;border-color:#e6c4bf}
+  .sort-cell{display:flex;gap:4px}
+  .sort-input{width:72px;padding:5px 6px;border:1px solid var(--line);border-radius:6px;font-size:13px;text-align:center;outline:none}
+  .sort-input:focus{border-color:var(--brand)}
+  .sort-input::-webkit-inner-spin-button{opacity:.4}
+  .price-cell{font-weight:700;color:var(--brand);white-space:nowrap}
+  .muted{color:var(--muted)}
+  .tag-cell{background:var(--brand-soft);color:var(--brand);padding:2px 8px;border-radius:5px;font-size:11px;white-space:nowrap}
+
+  /* 弹窗 */
+  .modal-mask{position:fixed;inset:0;background:rgba(15,10,6,.5);z-index:50;display:none;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+  .modal-mask.show{display:flex}
+  .modal{background:#fff;border-radius:16px;width:100%;max-width:560px;padding:24px;margin:auto 0}
+  .modal h3{margin-bottom:16px;font-size:17px}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;outline:none}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brand)}
+  .field textarea{min-height:60px;resize:vertical}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+  .modal-foot button{padding:9px 18px;border-radius:9px;font-size:13px}
+  .cancel-btn{background:#fff;border:1px solid var(--line)}
+  .save-btn{background:var(--brand);color:#fff;border:none;font-weight:600}
+
+  /* 图片管理 */
+  .img-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .img-item{position:relative;width:74px;height:74px;border-radius:9px;overflow:hidden;border:1px solid var(--line)}
+  .img-item img{width:100%;height:100%;object-fit:cover;display:block}
+  .img-item .del{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:11px;line-height:1}
+  .img-item .main-tag{position:absolute;bottom:2px;left:2px;background:var(--gold);color:#fff;font-size:9px;padding:1px 5px;border-radius:4px}
+  .img-item .left{position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,.5);color:#fff;border:none;font-size:10px;width:20px;height:20px;border-radius:4px}
+  .img-item:first-child{border-color:var(--gold)}
+  .upload-row{display:flex;gap:10px;align-items:center;margin-top:8px}
+  .upload-row button{padding:8px 14px;border-radius:8px;border:1px dashed var(--brand);background:var(--brand-soft);color:var(--brand);font-size:12px}
+  .uploading{color:var(--muted);font-size:12px}
+
+  @media(max-width:640px){
+    .grid2{grid-template-columns:1fr}
+    table{font-size:12px}
+    th:nth-child(4),td:nth-child(4){display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- 登录 -->
+<div class="login-wrap" id="loginView">
+  <form class="login-card" id="loginForm">
+    <h1>月饼图册 · 数据后台</h1>
+    <p class="sub">管理员登录</p>
+    <input id="loginEmail" type="email" placeholder="邮箱" autocomplete="username" required>
+    <input id="loginPw" type="password" placeholder="密码" autocomplete="current-password" required>
+    <button type="submit">登 录</button>
+    <p class="err" id="loginErr"></p>
+  </form>
+</div>
+
+<!-- 后台 -->
+<div id="appView" hidden>
+  <header class="topbar">
+    <div class="top-inner">
+      <span class="logo">🥮 数据后台</span>
+      <nav>
+        <button data-tab="items" class="active">款式</button>
+        <button data-tab="hotels">酒店</button>
+      </nav>
+      <div class="spacer"></div>
+      <button class="ghost-btn" id="logoutBtn">退出登录</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="tab-items">
+      <div class="toolbar">
+        <h2>款式管理</h2>
+        <button class="primary-btn" id="addItemBtn">+ 新增款式</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>排序(越大越前)</th><th>图片</th><th>名称</th><th>酒店</th><th>规格</th><th>价格</th><th>操作</th></tr>
+        </thead>
+        <tbody id="itemsBody"></tbody>
+      </table>
+    </section>
+
+    <section id="tab-hotels" hidden>
+      <div class="toolbar">
+        <h2>酒店管理</h2>
+        <button class="primary-btn" id="addHotelBtn">+ 新增酒店</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>名称</th><th>地区</th><th>排序</th><th>操作</th></tr>
+        </thead>
+        <tbody id="hotelsBody"></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+
+<!-- 弹窗 -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script src="vendor/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+var PUBLIC_BASE = window.SUPABASE_URL.replace(/\/+$/,'') + '/storage/v1/object/public/mooncake';
+var BUCKET = 'mooncake';
+
+var $ = function(id){ return document.getElementById(id); };
+var HOTELS = [], ITEMS = [];
+
+/* ---------- 登录 / 会话 ---------- */
+async function init(){
+  var s = await sb.auth.getSession();
+  if (s.data.session) showApp(); else showLogin();
+}
+function showLogin(){ $("loginView").hidden=false; $("appView").hidden=true; window.scrollTo(0,0); }
+function showApp(){ $("loginView").hidden=true; $("appView").hidden=false; loadAll(); window.scrollTo(0,0); }
+
+$("loginForm").addEventListener("submit", async function(e){
+  e.preventDefault();
+  $("loginErr").textContent = "";
+  var r = await sb.auth.signInWithPassword({ email: $("loginEmail").value.trim(), password: $("loginPw").value });
+  if (r.error) { $("loginErr").textContent = r.error.message || "登录失败"; return; }
+  showApp();
+});
+$("logoutBtn").addEventListener("click", async function(){ await sb.auth.signOut(); showLogin(); });
+
+/* ---------- Tab 切换 ---------- */
+document.querySelectorAll("nav button").forEach(function(b){
+  b.addEventListener("click", function(){
+    document.querySelectorAll("nav button").forEach(function(x){ x.classList.remove("active"); });
+    b.classList.add("active");
+    $("tab-items").hidden = b.dataset.tab !== "items";
+    $("tab-hotels").hidden = b.dataset.tab !== "hotels";
+    window.scrollTo(0,0);
+  });
+});
+
+/* ---------- 数据加载 ---------- */
+async function loadAll(){
+  var h = await sb.from('hotels').select('*').order('sort_order', { ascending: false });
+  var i = await sb.from('items').select('*').order('sort_order', { ascending: false });
+  HOTELS = h.data || [];
+  ITEMS = i.data || [];
+  renderHotels(); renderItems();
+}
+function hotelName(id){ var h=HOTELS.find(function(x){return x.id===id;}); return h ? h.name : ''; }
+
+/* ---------- 酒店 ---------- */
+function renderHotels(){
+  $("hotelsBody").innerHTML = HOTELS.map(function(h){
+    return '<tr>'
+      + '<td>'+h.name+'</td>'
+      + '<td>'+(h.region||'<span class="muted">—</span>')+'</td>'
+      + '<td>'+h.sort_order+'</td>'
+      + '<td class="row-actions"><button data-edit="'+h.id+'">编辑</button><button class="danger" data-del="'+h.id+'">删除</button></td>'
+      + '</tr>';
+  }).join('');
+  $("hotelsBody").querySelectorAll("[data-edit]").forEach(function(b){ b.onclick=function(){ openHotelModal(b.dataset.edit); }; });
+  $("hotelsBody").querySelectorAll("[data-del]").forEach(function(b){ b.onclick=function(){ delHotel(b.dataset.del); }; });
+}
+$("addHotelBtn").addEventListener("click", function(){ openHotelModal(null); });
+
+function openHotelModal(id){
+  var h = id ? HOTELS.find(function(x){return x.id===id;}) : { name:"", region:"", sort_order: HOTELS.length };
+  $("modalContent").innerHTML =
+    '<h3>'+(id?'编辑酒店':'新增酒店')+'</h3>'
+    + '<div class="field"><label>名称</label><input id="f_name" value="'+(h.name||'')+'"></div>'
+    + '<div class="grid2">'
+    +   '<div class="field"><label>地区（可空）</label><input id="f_region" value="'+(h.region||'')+'" placeholder="如：广州"></div>'
+    +   '<div class="field"><label>排序（数值越大越靠前）</label><input id="f_sort" type="number" value="'+(h.sort_order||0)+'"></div>'
+    + '</div>'
+    + '<div class="modal-foot"><button class="cancel-btn" id="m_cancel">取消</button><button class="save-btn" id="m_save">保存</button></div>';
+  $("modalMask").classList.add("show");
+  $("m_cancel").onclick = closeModal;
+  $("m_save").onclick = async function(){
+    var row = { name: $("f_name").value.trim(), region: $("f_region").value.trim(), sort_order: parseInt($("f_sort").value)||0 };
+    if(!row.name){ alert("请填写酒店名称"); return; }
+    var r;
+    if(id){ r = await sb.from('hotels').update(row).eq('id', id); }
+    else { row.id = 'h_'+crypto.randomUUID().slice(0,8); r = await sb.from('hotels').insert(row); }
+    if(r.error){ alert("保存失败："+r.error.message); return; }
+    closeModal(); loadAll();
+  };
+}
+async function delHotel(id){
+  if(!confirm("删除该酒店？其下所有款式也会一并删除。")) return;
+  var r = await sb.from('hotels').delete().eq('id', id);
+  if(r.error){ alert("删除失败："+r.error.message); return; }
+  loadAll();
+}
+
+/* ---------- 款式 ---------- */
+function renderItems(){
+  $("itemsBody").innerHTML = ITEMS.map(function(it, idx){
+    var imgs = it.imgs||[];
+    var p = Number(it.price)||0;
+    return '<tr>'
+      + '<td><input class="sort-input" type="number" data-id="'+it.id+'" value="'+it.sort_order+'" title="排序值，越大越靠前"></td>'
+      + '<td>'+(imgs[0]?'<img class="thumb-sm" src="'+imgs[0]+'">':'<span class="muted">无图</span>')+'</td>'
+      + '<td>'+it.name+'</td>'
+      + '<td class="muted">'+hotelName(it.hotel_id)+'</td>'
+      + '<td>'+(it.specs?'<span class="tag-cell">'+it.specs+'</span>':'<span class="muted">—</span>')+'</td>'
+      + '<td class="price-cell">'+(p>0?'¥'+p:'询价')+'</td>'
+      + '<td class="row-actions"><button data-edit="'+it.id+'">编辑</button><button class="danger" data-del="'+it.id+'">删除</button></td>'
+      + '</tr>';
+  }).join('');
+  $("itemsBody").querySelectorAll("[data-edit]").forEach(function(b){ b.onclick=function(){ openItemModal(b.dataset.edit); }; });
+  $("itemsBody").querySelectorAll("[data-del]").forEach(function(b){ b.onclick=function(){ delItem(b.dataset.del); }; });
+  // 排序值输入框：回车或失焦时保存；↑ 键可快速+1，↓ 键可快速-1
+  $("itemsBody").querySelectorAll(".sort-input").forEach(function(inp){
+    inp.onkeydown = function(e){
+      var v = parseInt(inp.value)||0;
+      if(e.key==='ArrowUp'){ e.preventDefault(); inp.value = v+1; saveSort(inp.dataset.id, v+1); }
+      else if(e.key==='ArrowDown'){ e.preventDefault(); inp.value = Math.max(0,v-1); saveSort(inp.dataset.id, Math.max(0,v-1)); }
+      else if(e.key==='Enter'){ e.preventDefault(); saveSort(inp.dataset.id, v); }
+    };
+    inp.onchange = function(){ var v = parseInt(inp.value)||0; saveSort(inp.dataset.id, v); };
+    inp.onblur = function(){ var v = parseInt(inp.value)||0; saveSort(inp.dataset.id, v); };
+  });
+}
+async function saveSort(id, value){
+  var v = parseInt(value)||0;
+  if(v<0) v=0; if(v>100000) v=100000;
+  var r = await sb.from('items').update({ sort_order: v }).eq('id', id);
+  if(r.error){ alert("排序保存失败："+r.error.message); loadAll(); return; }
+  // 更新本地缓存，避免用户未保存就切换导致回退
+  var it = ITEMS.find(function(x){return x.id===id;});
+  if(it) it.sort_order = v;
+  // 重新按值降序排序本地数组并重绘（值大在前）
+  ITEMS.sort(function(a,b){ return (b.sort_order||0)-(a.sort_order||0); });
+  renderItems();
+}
+$("addItemBtn").addEventListener("click", function(){ openItemModal(null); });
+
+function openItemModal(id){
+  var it = id ? ITEMS.find(function(x){return x.id===id;}) : { hotel_id:"", name:"", no:"", specs:"", price:0, descr:"", imgs:[] };
+  var imgs = it.imgs||[];
+  var hotelOpts = HOTELS.map(function(h){
+    return '<option value="'+h.id+'"'+(h.id===it.hotel_id?' selected':'')+'>'+h.name+(h.region?'（'+h.region+'）':'')+'</option>';
+  }).join('');
+  $("modalContent").innerHTML =
+    '<h3>'+(id?'编辑款式':'新增款式')+'</h3>'
+    + '<div class="field"><label>款式名称</label><input id="f_name" value="'+(it.name||'')+'"></div>'
+    + '<div class="field"><label>所属酒店</label><select id="f_hotel"><option value="">— 选择酒店 —</option>'+hotelOpts+'</select></div>'
+    + '<div class="grid2">'
+    +   '<div class="field"><label>规格</label><input id="f_specs" value="'+(it.specs||'')+'" placeholder="如：8粒"></div>'
+    +   '<div class="field"><label>价格（0 = 询价）</label><input id="f_price" type="number" step="0.01" value="'+(Number(it.price)||0)+'"></div>'
+    +   '<div class="field"><label>排序（越大越靠前）</label><input id="f_sort" type="number" value="'+(it.sort_order||0)+'" title="填 1~1000，数值越大越靠前"></div>'
+    + '</div>'
+    + '<div class="field"><label>款号（可空）</label><input id="f_no" value="'+(it.no||'')+'"></div>'
+    + '<div class="field"><label>描述（可空）</label><textarea id="f_desc">'+(it.descr||'')+'</textarea></div>'
+    + '<div class="field"><label>图片（第一张为主图）</label>'
+    +   '<div class="img-list" id="imgList"></div>'
+    +   '<div class="upload-row"><button type="button" id="addImgBtn">+ 上传图片</button><input type="file" id="imgInput" accept="image/*" multiple hidden><span class="uploading" id="upStatus"></span></div>'
+    + '</div>'
+    + '<div class="modal-foot"><button class="cancel-btn" id="m_cancel">取消</button><button class="save-btn" id="m_save">保存</button></div>';
+  $("modalMask").classList.add("show");
+  $("m_cancel").onclick = closeModal;
+
+  var curImgs = imgs.slice();
+  function renderImgList(){
+    $("imgList").innerHTML = curImgs.map(function(src,i){
+      return '<div class="img-item">'
+        + '<img src="'+src+'">'
+        + (i===0?'<span class="main-tag">主图</span>':'')
+        + '<button class="del" data-i="'+i+'" title="删除">✕</button>'
+        + (i>0?'<button class="left" data-i="'+i+'" title="左移">←</button>':'')
+        + '</div>';
+    }).join('');
+    $("imgList").querySelectorAll(".del").forEach(function(b){ b.onclick=function(){ curImgs.splice(parseInt(b.dataset.i),1); renderImgList(); }; });
+    $("imgList").querySelectorAll(".left").forEach(function(b){ b.onclick=function(){ var j=parseInt(b.dataset.i); var t=curImgs[j]; curImgs[j]=curImgs[j-1]; curImgs[j-1]=t; renderImgList(); }; });
+  }
+  renderImgList();
+
+  $("addImgBtn").onclick = function(){ $("imgInput").click(); };
+  $("imgInput").onchange = async function(){
+    var files = Array.from($("imgInput").files);
+    if(!files.length) return;
+    $("upStatus").textContent = "上传中...";
+    for(var f of files){
+      var ext = (f.name.split('.').pop()||'jpg').toLowerCase();
+      var path = crypto.randomUUID()+'.'+ext;
+      var r = await sb.storage.from(BUCKET).upload(path, f, { cacheControl: '3600', upsert: true });
+      if(r.error){ alert("上传失败："+r.error.message); continue; }
+      curImgs.push(PUBLIC_BASE + '/' + path);
+    }
+    $("upStatus").textContent = "";
+    $("imgInput").value = "";
+    renderImgList();
+  };
+
+  $("m_save").onclick = async function(){
+    var name = $("f_name").value.trim();
+    if(!name){ alert("请填写款式名称"); return; }
+    var row = {
+      hotel_id: $("f_hotel").value,
+      name: name,
+      specs: $("f_specs").value.trim(),
+      price: parseFloat($("f_price").value)||0,
+      no: $("f_no").value.trim(),
+      descr: $("f_desc").value.trim(),
+      imgs: curImgs,
+      sort_order: parseInt($("f_sort").value)||0
+    };
+    var r;
+    if(id){ r = await sb.from('items').update(row).eq('id', id); }
+    else { row.id = crypto.randomUUID(); r = await sb.from('items').insert(row); }
+    if(r.error){ alert("保存失败："+r.error.message); return; }
+    closeModal(); loadAll();
+  };
+}
+async function delItem(id){
+  if(!confirm("确认删除该款式？")) return;
+  var r = await sb.from('items').delete().eq('id', id);
+  if(r.error){ alert("删除失败："+r.error.message); return; }
+  loadAll();
+}
+
+function closeModal(){ $("modalMask").classList.remove("show"); $("modalContent").innerHTML = ""; }
+$("modalMask").addEventListener("click", function(e){ if(e.target===this) closeModal(); });
+
+init();
+</script>
+</body>
+</html>

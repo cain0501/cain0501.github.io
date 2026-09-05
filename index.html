@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>月饼礼盒产品图册</title>
+<style>
+  :root{
+    --bg:#f7f5f2; --card:#ffffff; --text:#241b16; --muted:#8a7a70;
+    --line:#e9e2db; --brand:#b3542e; --brand-soft:#f7ebe3;
+    --gold:#c9a24b; --gold-soft:#f8f0dc;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+  .topbar{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--line)}
+  .top-inner{max-width:960px;margin:0 auto;padding:14px 16px 10px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{width:38px;height:38px;border-radius:10px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px}
+  .brand h1{font-size:17px;font-weight:700}
+  .brand p{font-size:12px;color:var(--muted);margin-top:1px}
+  .search{margin-top:12px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+  .search input{flex:1;border:none;outline:none;background:transparent;font-size:14px}
+  .filters{max-width:960px;margin:0 auto;padding:12px 16px 2px;display:flex;flex-direction:column;gap:10px}
+  .f-row{display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .f-row::-webkit-scrollbar{display:none}
+  .f-label{flex-shrink:0;font-size:12px;color:var(--muted);min-width:34px}
+  .chip{flex-shrink:0;padding:6px 12px;border-radius:18px;background:#f5f2ec;border:1.5px solid transparent;font-size:12.5px;color:#8a7a70;cursor:pointer;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;gap:3px}
+  .chip:hover{background:#ebe5da;color:#5a4f48}
+  .chip.active{background:#fff;color:var(--brand);border:1.5px solid var(--brand);font-weight:500;padding-left:10px}
+  .chip.active::before{content:'✓';display:inline-block;font-size:11px;margin-right:2px;font-weight:700}
+  .chip.gold{background:#f8f0dc;color:#a17a13}
+  .chip.gold:hover{background:#f0e4c4;color:#7d5a0a}
+  .chip.gold.active{background:#fff;color:var(--gold);border:1.5px solid var(--gold);font-weight:500;padding-left:10px}
+  .chip.gold.active::before{content:'✓';display:inline-block;font-size:11px;margin-right:2px;font-weight:700}
+  .active-filters{display:none;max-width:960px;margin:12px 16px 0;padding:10px 12px;background:#fff;border:1px solid #e9e2db;border-radius:10px;align-items:center;flex-wrap:wrap;gap:6px}
+  .active-filters.show{display:flex}
+  .active-filters .lbl{font-size:12px;color:#8a7a70;margin-right:4px}
+  .active-filters .tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#f7ebe3;color:var(--brand);border-radius:14px;font-size:12px;font-weight:500}
+  .active-filters .tag .x{cursor:pointer;opacity:.6;font-size:13px;line-height:1;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%}
+  .active-filters .tag .x:hover{opacity:1;background:var(--brand);color:#fff}
+  .active-filters .clear-all{margin-left:auto;font-size:12px;color:#8a7a70;background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px}
+  .active-filters .clear-all:hover{color:var(--brand);background:#f7ebe3}
+  select.brand-sel{flex:1;max-width:320px;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:13.5px;outline:none;color:var(--text)}
+  .count{margin:10px 16px 0;font-size:12px;color:var(--muted);max-width:960px;margin-left:auto;margin-right:auto}
+  .count b{color:var(--brand)}
+  .grid{max-width:960px;margin:0 auto;padding:12px 16px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .card{background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.05);transition:transform .12s;border:1px solid var(--line)}
+  .card:active{transform:scale(.97)}
+  .thumb{position:relative;aspect-ratio:1/1;background:#efe9e2;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .badge{position:absolute;top:8px;left:8px;background:var(--brand);color:#fff;font-size:10.5px;padding:3px 7px;border-radius:6px}
+  .badge.gold{background:var(--gold)}
+  .imgs-n{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:3px 7px;border-radius:6px}
+  .card-body{padding:10px 11px 12px}
+  .card-body .hotel{font-size:11px;color:var(--muted);margin-bottom:3px}
+  .card-body .name{font-size:13.5px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .card-body .meta{margin-top:6px;font-size:11px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .meta .tag{background:var(--brand-soft);color:var(--brand);padding:2px 7px;border-radius:5px;white-space:nowrap}
+  .meta .price{color:var(--brand);font-weight:700;font-size:12.5px}
+  .meta .price small{font-weight:400;font-size:10px}
+  .empty{grid-column:1/-1;text-align:center;padding:60px 0;color:var(--muted);font-size:14px}
+  .lightbox{position:fixed;inset:0;background:rgba(15,10,6,.96);z-index:100;display:none;flex-direction:column}
+  .lightbox.show{display:flex}
+  .lb-top{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;color:#fff}
+  .lb-top .no{font-size:12.5px;opacity:.7}
+  .lb-close{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .lb-stage{flex:1;display:flex;align-items:center;justify-content:center;padding:0 8px;min-height:0;position:relative;overflow:hidden}
+  .lb-img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;transition:opacity .18s}
+  .lb-arrow{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.14);border:none;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .lb-arrow.l{left:8px}.lb-arrow.r{right:8px}
+  .lb-thumbs{display:flex;gap:8px;justify-content:center;padding:10px 12px 4px;overflow-x:auto}
+  .lb-thumbs img{width:52px;height:52px;object-fit:cover;border-radius:8px;cursor:pointer;opacity:.45;border:2px solid transparent}
+  .lb-thumbs img.on{opacity:1;border-color:var(--gold)}
+  .lb-info{padding:12px 16px 16px;color:#fff}
+  .lb-info .t{font-size:17px;font-weight:700}
+  .lb-info .h{font-size:12.5px;opacity:.75;margin-top:3px}
+  .lb-info .tags{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .tag{font-size:12px;background:rgba(255,255,255,.14);padding:4px 10px;border-radius:6px}
+  @media(min-width:640px){
+    .grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}
+    .card-body .name{font-size:14px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="top-inner">
+    <div class="brand">
+      <div class="logo">🥮</div>
+      <div>
+        <h1>月饼礼盒产品图册</h1>
+        <p>多酒店 · 多款式 · 点击图片看大图</p>
+      </div>
+    </div>
+    <div class="search">
+      <span>🔍</span>
+      <input id="kw" type="text" placeholder="搜索款式 / 酒店 / 规格...">
+    </div>
+  </div>
+</header>
+
+<div class="filters">
+  <div class="f-row" id="regionRow"></div>
+  <div class="f-row">
+    <span class="f-label">酒店</span>
+    <select id="brandSel" class="brand-sel"></select>
+  </div>
+  <div class="f-row" id="specRow"></div>
+  <div class="f-row">
+    <span class="f-label">价格</span>
+    <button class="chip active" data-p="all">全部</button>
+    <button class="chip" data-p="lt100">100↓</button>
+    <button class="chip" data-p="100-200">100-200</button>
+    <button class="chip" data-p="200-300">200-300</button>
+    <button class="chip" data-p="gt300">300↑</button>
+  </div>
+</div>
+
+<div class="active-filters" id="activeFilters">
+  <span class="lbl">当前筛选：</span>
+  <span id="afTags"></span>
+  <button class="clear-all" onclick="clearAllFilters()">清除全部</button>
+</div>
+
+<div class="count">共 <b id="total">0</b> 款 · 点击卡片看大图</div>
+
+<main class="grid" id="grid">
+  <div class="empty">加载中...</div>
+</main>
+
+<div class="lightbox" id="lightbox">
+  <div class="lb-top">
+    <span class="no" id="lbNo"></span>
+    <button class="lb-close" id="lbClose">✕</button>
+  </div>
+  <div class="lb-stage">
+    <button class="lb-arrow l" id="lbPrev">‹</button>
+    <img class="lb-img" id="lbImg" alt="产品大图">
+    <button class="lb-arrow r" id="lbNext">›</button>
+  </div>
+  <div class="lb-thumbs" id="lbThumbs"></div>
+  <div class="lb-info">
+    <p class="t" id="lbName"></p>
+    <p class="h" id="lbHotel"></p>
+    <div class="tags" id="lbTags"></div>
+  </div>
+</div>
+
+<script src="vendor/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+var sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+var HOTELS = [], ITEMS = [];
+var state = { hotel:"all", price:"all", region:"all", spec:"all", kw:"" };
+var cur = { item:null, img:0 };
+var $ = function(id){ return document.getElementById(id); };
+
+function hotelName(id){ var h=null; HOTELS.forEach(function(x){if(x.id===id)h=x;}); return h ? h.name : ""; }
+function hotelRegion(id){ var h=null; HOTELS.forEach(function(x){if(x.id===id)h=x;}); return h ? (h.region||"") : ""; }
+function unique(arr){ var out=[],seen={}; arr.forEach(function(v){ if(v&&!seen[v]){seen[v]=1;out.push(v);} }); return out; }
+
+function initFilters(){
+  var html = '<option value="all">全部酒店</option>';
+  HOTELS.forEach(function(h){ html += '<option value="'+h.id+'">'+h.name+(h.region?'（'+h.region+'）':'')+'</option>'; });
+  $("brandSel").innerHTML = html;
+  $("brandSel").onchange = function(){ state.hotel = this.value; render(); };
+
+  var regions = unique(HOTELS.map(function(h){return h.region;}).filter(Boolean));
+  var rh = '<button class="chip active" data-v="all">全部</button>';
+  regions.forEach(function(r){ rh += '<button class="chip" data-v="'+r+'">'+r+'</button>'; });
+  $("regionRow").innerHTML = rh;
+
+  var specs = unique(ITEMS.map(function(i){return i.specs;}).filter(Boolean));
+  var sh = '<button class="chip active" data-v="all">全部</button>';
+  specs.forEach(function(s){ sh += '<button class="chip" data-v="'+s+'">'+s+'</button>'; });
+  $("specRow").innerHTML = sh;
+
+  document.querySelectorAll("#regionRow .chip").forEach(function(c){
+    c.onclick = function(){ setChip("#regionRow", c, function(v){state.region=v;}); };
+  });
+  document.querySelectorAll("#specRow .chip").forEach(function(c){
+    c.onclick = function(){ setChip("#specRow", c, function(v){state.spec=v;}); };
+  });
+  document.querySelectorAll(".f-row .chip[data-p]").forEach(function(c){
+    c.onclick = function(){ setChip(".f-row .chip[data-p]", c, function(v){state.price=v;}); };
+  });
+}
+function setChip(_sel, el, cb){
+  el.parentNode.querySelectorAll(".chip").forEach(function(c){ c.classList.remove("active"); });
+  el.classList.add("active");
+  cb(el.getAttribute("data-p") || el.getAttribute("data-v"));
+  render();
+}
+function priceOk(p, range){
+  if(range==="all") return true;
+  if(p<=0) return false;
+  if(range==="lt100") return p<100;
+  if(range==="100-200") return p>=100&&p<200;
+  if(range==="200-300") return p>=200&&p<300;
+  if(range==="gt300") return p>=300;
+  return true;
+}
+function filtered(){
+  var kw = state.kw.trim().toLowerCase();
+  return ITEMS.filter(function(it){
+    var hName = hotelName(it.hotel_id);
+    var hReg  = hotelRegion(it.hotel_id);
+    if(state.hotel!=="all" && it.hotel_id!==state.hotel) return false;
+    if(state.region!=="all" && hReg!==state.region) return false;
+    if(!priceOk(Number(it.price)||0, state.price)) return false;
+    if(state.spec!=="all" && it.specs!==state.spec) return false;
+    if(kw && (it.name+(it.no||"")+hName+hReg+(it.specs||"")).toLowerCase().indexOf(kw)<0) return false;
+    return true;
+  });
+}
+function render(){
+  var list = filtered();
+  $("total").textContent = list.length;
+  renderActiveFilters();
+  if(!list.length){ $("grid").innerHTML = '<div class="empty">未找到匹配的礼盒，试试放宽筛选条件</div>'; return; }
+  var html = "";
+  list.forEach(function(it,i){
+    var imgs = it.imgs || [];
+    var n = imgs.length;
+    var reg = hotelRegion(it.hotel_id);
+    var p = Number(it.price)||0;
+    html += '<div class="card" data-i="'+i+'">'
+      + '<div class="thumb"><img loading="lazy" src="'+imgs[0]+'" alt="'+it.name+'">'
+      + (n>1?'<span class="imgs-n">'+n+'图</span>':'')
+      + (p>0?'':'<span class="badge gold">询价</span>')
+      + '</div>'
+      + '<div class="card-body">'
+      + '<p class="hotel">'+hotelName(it.hotel_id)+(reg?' · '+reg:'')+'</p>'
+      + '<p class="name">'+it.name+'</p>'
+      + '<div class="meta"><span class="tag">'+(it.specs||'')+'</span>'
+      + (p>0?'<span class="price"><small>¥</small>'+p+'</span>':'<span class="price"><small>¥</small>询价</span>')
+      + '</div></div></div>';
+  });
+  $("grid").innerHTML = html;
+  $("grid").querySelectorAll(".card").forEach(function(c){
+    c.onclick = function(){ openLb(parseInt(c.getAttribute("data-i"))); };
+  });
+}
+function openLb(idx){
+  cur.item = filtered()[idx];
+  cur.img = 0;
+  $("lbName").textContent = cur.item.name;
+  $("lbHotel").textContent = hotelName(cur.item.hotel_id) + (hotelRegion(cur.item.hotel_id)?' · '+hotelRegion(cur.item.hotel_id):'') + (cur.item.no?' · 款号 '+cur.item.no:'');
+  var p = Number(cur.item.price)||0;
+  var tags = (cur.item.specs?'<span class="tag">'+cur.item.specs+'</span>':'')
+    + (p>0?'<span class="tag">¥'+p+'/盒</span>':'<span class="tag">询价</span>');
+  $("lbTags").innerHTML = tags;
+  $("lbNo").textContent = (idx+1) + ' / ' + filtered().length;
+  var th = "";
+  (cur.item.imgs||[]).forEach(function(src,j){
+    th += '<img src="'+src+'" data-j="'+j+'" class="'+(j===0?'on':'')+'">';
+  });
+  $("lbThumbs").innerHTML = th;
+  $("lbThumbs").querySelectorAll("img").forEach(function(t){
+    t.onclick = function(){ showImg(parseInt(t.getAttribute("data-j"))); };
+  });
+  showImg(0);
+  $("lightbox").classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+function showImg(j){
+  cur.img = j;
+  var img = $("lbImg");
+  img.style.opacity = 0;
+  setTimeout(function(){ img.src = cur.item.imgs[j]; img.style.opacity = 1; }, 120);
+  $("lbThumbs").querySelectorAll("img").forEach(function(t,i){ t.classList.toggle("on", i===j); });
+  $("lbPrev").style.visibility = cur.item.imgs.length>1 ? "visible" : "hidden";
+  $("lbNext").style.visibility = cur.item.imgs.length>1 ? "visible" : "hidden";
+}
+function closeLb(){
+  $("lightbox").classList.remove("show");
+  document.body.style.overflow = "";
+}
+var PRICE_LABEL = {all:"不限", lt100:"100以下", "100-200":"100-200", "200-300":"200-300", gt300:"300以上"};
+function renderActiveFilters(){
+  var tags = [];
+  if(state.region!=="all") tags.push({lbl:"地区·"+state.region, type:"region"});
+  if(state.hotel!=="all") tags.push({lbl:"酒店·"+hotelName(state.hotel), type:"hotel"});
+  if(state.price!=="all") tags.push({lbl:"价格·"+PRICE_LABEL[state.price], type:"price"});
+  if(state.spec!=="all") tags.push({lbl:"规格·"+state.spec, type:"spec"});
+  if(state.kw) tags.push({lbl:"搜索·"+state.kw, type:"kw"});
+  var html = tags.map(function(t){
+    return '<span class="tag">'+t.lbl+'<span class="x" onclick="clearOne(\''+t.type+'\')" title="移除">✕</span></span>';
+  }).join("");
+  $("afTags").innerHTML = html;
+  $("activeFilters").classList.toggle("show", tags.length>0);
+}
+function clearOne(type){
+  if(type==="region"){
+    state.region="all";
+    document.querySelectorAll("#regionRow .chip").forEach(function(c){ c.classList.toggle("active", c.getAttribute("data-v")==="all"); });
+  } else if(type==="hotel"){
+    state.hotel="all"; $("brandSel").value="all";
+  } else if(type==="price"){
+    state.price="all";
+    document.querySelectorAll(".f-row .chip[data-p]").forEach(function(c){ c.classList.toggle("active", c.getAttribute("data-p")==="all"); });
+  } else if(type==="spec"){
+    state.spec="all";
+    document.querySelectorAll("#specRow .chip").forEach(function(c){ c.classList.toggle("active", c.getAttribute("data-v")==="all"); });
+  } else if(type==="kw"){
+    state.kw=""; $("kw").value="";
+  }
+  render();
+}
+function clearAllFilters(){
+  state.region="all"; state.hotel="all"; state.price="all"; state.spec="all"; state.kw="";
+  $("brandSel").value="all"; $("kw").value="";
+  ["regionRow","specRow"].forEach(function(id){
+    document.getElementById(id).querySelectorAll(".chip").forEach(function(x){ x.classList.toggle("active", x.getAttribute("data-v")==="all"); });
+  });
+  document.querySelectorAll(".f-row .chip[data-p]").forEach(function(c){ c.classList.toggle("active", c.getAttribute("data-p")==="all"); });
+  render();
+}
+
+async function load(){
+  try {
+    var h = await sb.from('hotels').select('*').order('sort_order', { ascending: false });
+    var i = await sb.from('items').select('*').order('sort_order', { ascending: false });
+    if (h.error) throw h.error;
+    if (i.error) throw i.error;
+    HOTELS = (h.data||[]);
+    ITEMS = (i.data||[]).map(function(x){ return Object.assign({}, x, { price: Number(x.price)||0, imgs: x.imgs||[] }); });
+    initFilters();
+    render();
+  } catch(e) {
+    $("grid").innerHTML = '<div class="empty">数据加载失败，请稍后重试</div>';
+  }
+}
+
+$("lbClose").onclick = closeLb;
+$("lightbox").onclick = function(e){ if(e.target===this) closeLb(); };
+$("lbPrev").onclick = function(e){ e.stopPropagation(); if(cur.item&&cur.item.imgs.length) showImg((cur.img+cur.item.imgs.length-1)%cur.item.imgs.length); };
+$("lbNext").onclick = function(e){ e.stopPropagation(); if(cur.item&&cur.item.imgs.length) showImg((cur.img+1)%cur.item.imgs.length); };
+$("kw").oninput = function(){ state.kw=this.value; render(); };
+document.addEventListener("keydown", function(e){
+  if(!$("lightbox").classList.contains("show")) return;
+  if(e.key==="Escape") closeLb();
+  else if(e.key==="ArrowLeft") $("lbPrev").click();
+  else if(e.key==="ArrowRight") $("lbNext").click();
+});
+
+load();
+</script>
+</body>
+</html>
