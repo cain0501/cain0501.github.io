@@ -404,7 +404,6 @@ async function delItem(id){
 }
 
 function closeModal(){ $("modalMask").classList.remove("show"); $("modalContent").innerHTML = ""; }
-$("modalMask").addEventListener("click", function(e){ if(e.target===this) closeModal(); });
 
 init();
 </script>
