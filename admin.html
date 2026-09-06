@@ -58,6 +58,7 @@
   .soldout-row{opacity:.55}
   .soldout-badge{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:5px;background:#777;color:#fff;font-size:11px;font-weight:500}
   .muted{color:var(--muted)}
+  .load-error{padding:24px;text-align:center;color:#c0392b;font-size:13px}
   .tag-cell{background:var(--brand-soft);color:var(--brand);padding:2px 8px;border-radius:5px;font-size:11px;white-space:nowrap}
 
   /* 弹窗 */
@@ -197,12 +198,21 @@ document.querySelectorAll("nav button").forEach(function(b){
 
 /* ---------- 数据加载 ---------- */
 async function loadAll(){
-  var h = await sb.from('hotels').select('*').order('sort_order', { ascending: false });
-  var i = await sb.from('items').select('*').order('sort_order', { ascending: false });
-  HOTELS = h.data || [];
-  ITEMS = i.data || [];
-  ITEMS.sort(function(a,b){ return Number(a.sold_out)-Number(b.sold_out) || (b.sort_order||0)-(a.sort_order||0); });
-  renderHotels(); renderItems();
+  try {
+    var h = await sb.from('hotels').select('*').order('sort_order', { ascending: false });
+    var i = await sb.from('items').select('*').order('sort_order', { ascending: false });
+    if(h.error) throw h.error;
+    if(i.error) throw i.error;
+    HOTELS = h.data || [];
+    ITEMS = i.data || [];
+    ITEMS.sort(function(a,b){ return Number(a.sold_out)-Number(b.sold_out) || (b.sort_order||0)-(a.sort_order||0); });
+    renderHotels(); renderItems();
+  } catch(e) {
+    var msg = (e && e.message) ? e.message : '数据加载失败，请刷新重试';
+    $("hotelsBody").innerHTML = '<tr><td colspan="4" class="load-error">'+msg+' <button class="row-actions" onclick="loadAll()">重试</button></td></tr>';
+    $("itemsBody").innerHTML = '<tr><td colspan="7" class="load-error">'+msg+' <button class="row-actions" onclick="loadAll()">重试</button></td></tr>';
+    console.error('loadAll failed:', e);
+  }
 }
 function hotelName(id){ var h=HOTELS.find(function(x){return x.id===id;}); return h ? h.name : ''; }
 
