@@ -219,7 +219,7 @@ function hotelName(id){ var h=HOTELS.find(function(x){return x.id===id;}); retur
 /* ---------- 酒店 ---------- */
 function renderHotels(){
   $("hotelsBody").innerHTML = HOTELS.map(function(h){
-    return '<tr class="'+(it.sold_out?'soldout-row':'')+'">'
+    return '<tr>'
       + '<td>'+h.name+'</td>'
       + '<td>'+(h.region||'<span class="muted">—</span>')+'</td>'
       + '<td>'+h.sort_order+'</td>'
