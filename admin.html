@@ -88,6 +88,16 @@
   .upload-row{display:flex;gap:10px;align-items:center;margin-top:8px}
   .upload-row button{padding:8px 14px;border-radius:8px;border:1px dashed var(--brand);background:var(--brand-soft);color:var(--brand);font-size:12px}
   .uploading{color:var(--muted);font-size:12px}
+  .soldout-field{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 14px;background:#faf8f5;border:1px solid var(--line);border-radius:10px}
+  .soldout-copy{display:flex;flex-direction:column;gap:3px}
+  .soldout-copy strong{font-size:13px;color:var(--text);font-weight:600}
+  .soldout-copy span{font-size:11px;color:var(--muted)}
+  .soldout-toggle{position:relative;width:42px;height:24px;flex:0 0 auto}
+  .soldout-toggle input{position:absolute;opacity:0;width:0;height:0}
+  .soldout-slider{position:absolute;inset:0;background:#d9d2ca;border-radius:999px;cursor:pointer;transition:.18s}
+  .soldout-slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.18s}
+  .soldout-toggle input:checked + .soldout-slider{background:#777}
+  .soldout-toggle input:checked + .soldout-slider:before{transform:translateX(18px)}
 
   @media(max-width:640px){
     .grid2{grid-template-columns:1fr}
@@ -326,7 +336,10 @@ function openItemModal(id){
     + '</div>'
     + '<div class="modal-foot"><button class="cancel-btn" id="m_cancel">取消</button><button class="save-btn" id="m_save">保存</button></div>';
   $("modalContent").insertAdjacentHTML("beforeend", '<div class="field"><label><input id="f_sold_out" type="checkbox"'+(it.sold_out?' checked':'')+'> 售罄（保存后前端自动置底并灰度显示）</label></div>');
-  $("modalContent").insertBefore($("modalContent").lastElementChild, $("modalContent").querySelector(".modal-foot"));
+  var soldOutField = $("modalContent").lastElementChild;
+  soldOutField.className = "field soldout-field";
+  soldOutField.innerHTML = '<div class="soldout-copy"><strong>售罄</strong><span>保存后前台自动置底并灰度显示</span></div><label class="soldout-toggle"><input id="f_sold_out" type="checkbox"'+(it.sold_out?' checked':'')+'><span class="soldout-slider"></span></label>';
+  $("modalContent").insertBefore(soldOutField, $("modalContent").querySelector(".modal-foot"));
   $("modalMask").classList.add("show");
   $("m_cancel").onclick = closeModal;
 
