@@ -55,6 +55,8 @@
   .sort-input:focus{border-color:var(--brand)}
   .sort-input::-webkit-inner-spin-button{opacity:.4}
   .price-cell{font-weight:700;color:var(--brand);white-space:nowrap}
+  .soldout-row{opacity:.55}
+  .soldout-badge{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:5px;background:#777;color:#fff;font-size:11px;font-weight:500}
   .muted{color:var(--muted)}
   .tag-cell{background:var(--brand-soft);color:var(--brand);padding:2px 8px;border-radius:5px;font-size:11px;white-space:nowrap}
 
@@ -199,6 +201,7 @@ async function loadAll(){
   var i = await sb.from('items').select('*').order('sort_order', { ascending: false });
   HOTELS = h.data || [];
   ITEMS = i.data || [];
+  ITEMS.sort(function(a,b){ return Number(a.sold_out)-Number(b.sold_out) || (b.sort_order||0)-(a.sort_order||0); });
   renderHotels(); renderItems();
 }
 function hotelName(id){ var h=HOTELS.find(function(x){return x.id===id;}); return h ? h.name : ''; }
@@ -206,7 +209,7 @@ function hotelName(id){ var h=HOTELS.find(function(x){return x.id===id;}); retur
 /* ---------- 酒店 ---------- */
 function renderHotels(){
   $("hotelsBody").innerHTML = HOTELS.map(function(h){
-    return '<tr>'
+    return '<tr class="'+(it.sold_out?'soldout-row':'')+'">'
       + '<td>'+h.name+'</td>'
       + '<td>'+(h.region||'<span class="muted">—</span>')+'</td>'
       + '<td>'+h.sort_order+'</td>'
@@ -255,7 +258,7 @@ function renderItems(){
     return '<tr>'
       + '<td><input class="sort-input" type="number" data-id="'+it.id+'" value="'+it.sort_order+'" title="排序值，越大越靠前"></td>'
       + '<td>'+(imgs[0]?'<img class="thumb-sm" src="'+imgs[0]+'">':'<span class="muted">无图</span>')+'</td>'
-      + '<td>'+it.name+'</td>'
+      + '<td>'+it.name+(it.sold_out?'<span class="soldout-badge">售罄</span>':'')+'</td>'
       + '<td class="muted">'+hotelName(it.hotel_id)+'</td>'
       + '<td>'+(it.specs?'<span class="tag-cell">'+it.specs+'</span>':'<span class="muted">—</span>')+'</td>'
       + '<td class="price-cell">'+(p>0?'¥'+p:'询价')+'</td>'
@@ -285,13 +288,13 @@ async function saveSort(id, value){
   var it = ITEMS.find(function(x){return x.id===id;});
   if(it) it.sort_order = v;
   // 重新按值降序排序本地数组并重绘（值大在前）
-  ITEMS.sort(function(a,b){ return (b.sort_order||0)-(a.sort_order||0); });
+  ITEMS.sort(function(a,b){ return Number(a.sold_out)-Number(b.sold_out) || (b.sort_order||0)-(a.sort_order||0); });
   renderItems();
 }
 $("addItemBtn").addEventListener("click", function(){ openItemModal(null); });
 
 function openItemModal(id){
-  var it = id ? ITEMS.find(function(x){return x.id===id;}) : { hotel_id:"", name:"", no:"", specs:"", price:0, descr:"", imgs:[] };
+  var it = id ? ITEMS.find(function(x){return x.id===id;}) : { hotel_id:"", name:"", no:"", specs:"", price:0, descr:"", imgs:[], sold_out:false };
   var imgs = it.imgs||[];
   var hotelOpts = HOTELS.map(function(h){
     return '<option value="'+h.id+'"'+(h.id===it.hotel_id?' selected':'')+'>'+h.name+(h.region?'（'+h.region+'）':'')+'</option>';
@@ -312,6 +315,8 @@ function openItemModal(id){
     +   '<div class="upload-row"><button type="button" id="addImgBtn">+ 上传图片</button><input type="file" id="imgInput" accept="image/*" multiple hidden><span class="uploading" id="upStatus"></span></div>'
     + '</div>'
     + '<div class="modal-foot"><button class="cancel-btn" id="m_cancel">取消</button><button class="save-btn" id="m_save">保存</button></div>';
+  $("modalContent").insertAdjacentHTML("beforeend", '<div class="field"><label><input id="f_sold_out" type="checkbox"'+(it.sold_out?' checked':'')+'> 售罄（保存后前端自动置底并灰度显示）</label></div>');
+  $("modalContent").insertBefore($("modalContent").lastElementChild, $("modalContent").querySelector(".modal-foot"));
   $("modalMask").classList.add("show");
   $("m_cancel").onclick = closeModal;
 
@@ -358,6 +363,7 @@ function openItemModal(id){
       no: $("f_no").value.trim(),
       descr: $("f_desc").value.trim(),
       imgs: curImgs,
+      sold_out: $("f_sold_out").checked,
       sort_order: parseInt($("f_sort").value)||0
     };
     var r;

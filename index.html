@@ -46,6 +46,7 @@
   .grid{max-width:960px;margin:0 auto;padding:12px 16px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
   .card{background:var(--card);border-radius:12px;overflow:hidden;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.05);transition:transform .12s;border:1px solid var(--line)}
   .card:active{transform:scale(.97)}
+  .card.sold-out{filter:grayscale(1);opacity:.62}
   .thumb{position:relative;aspect-ratio:1/1;background:#efe9e2;overflow:hidden}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .badge{position:absolute;top:8px;left:8px;background:var(--brand);color:#fff;font-size:10.5px;padding:3px 7px;border-radius:6px}
@@ -226,8 +227,9 @@ function render(){
     var n = imgs.length;
     var reg = hotelRegion(it.hotel_id);
     var p = Number(it.price)||0;
-    html += '<div class="card" data-i="'+i+'">'
+    html += '<div class="card'+(it.sold_out?' sold-out':'')+'" data-i="'+i+'">'
       + '<div class="thumb"><img loading="lazy" src="'+imgs[0]+'" alt="'+it.name+'">'
+      + (it.sold_out?'<span class="badge">售罄</span>':'')
       + (n>1?'<span class="imgs-n">'+n+'图</span>':'')
       + (p>0?'':'<span class="badge gold">询价</span>')
       + '</div>'
@@ -326,7 +328,8 @@ async function load(){
     if (h.error) throw h.error;
     if (i.error) throw i.error;
     HOTELS = (h.data||[]);
-    ITEMS = (i.data||[]).map(function(x){ return Object.assign({}, x, { price: Number(x.price)||0, imgs: x.imgs||[] }); });
+    ITEMS = (i.data||[]).map(function(x){ return Object.assign({}, x, { price: Number(x.price)||0, imgs: x.imgs||[], sold_out: x.sold_out===true }); });
+    ITEMS.sort(function(a,b){ return Number(a.sold_out)-Number(b.sold_out) || (b.sort_order||0)-(a.sort_order||0); });
     initFilters();
     render();
   } catch(e) {
