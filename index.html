@@ -59,6 +59,8 @@
   .meta .tag{background:var(--brand-soft);color:var(--brand);padding:2px 7px;border-radius:5px;white-space:nowrap}
   .meta .price{color:var(--brand);font-weight:700;font-size:12.5px}
   .meta .price small{font-weight:400;font-size:10px}
+  .meta-right{display:flex;align-items:center;gap:6px;margin-left:auto}
+  .shipping-badge{padding:2px 6px;border-radius:5px;background:#edf5ee;color:#3f7b4b;font-size:10px;white-space:nowrap;font-weight:600}
   .empty{grid-column:1/-1;text-align:center;padding:60px 0;color:var(--muted);font-size:14px}
   .lightbox{position:fixed;inset:0;background:rgba(15,10,6,.96);z-index:100;display:none;flex-direction:column}
   .lightbox.show{display:flex}
@@ -236,9 +238,9 @@ function render(){
       + '<div class="card-body">'
       + '<p class="hotel">'+hotelName(it.hotel_id)+(reg?' · '+reg:'')+'</p>'
       + '<p class="name">'+it.name+'</p>'
-      + '<div class="meta"><span class="tag">'+(it.specs||'')+'</span>'
+      + '<div class="meta"><span class="tag">'+(it.specs||'')+'</span><span class="meta-right">'+(it.free_shipping?'<span class="shipping-badge">包邮</span>':'')
       + (p>0?'<span class="price"><small>¥</small>'+p+'</span>':'<span class="price"><small>¥</small>询价</span>')
-      + '</div></div></div>';
+      + '</span></div></div></div>';
   });
   $("grid").innerHTML = html;
   $("grid").querySelectorAll(".card").forEach(function(c){
@@ -328,7 +330,7 @@ async function load(){
     if (h.error) throw h.error;
     if (i.error) throw i.error;
     HOTELS = (h.data||[]);
-    ITEMS = (i.data||[]).map(function(x){ return Object.assign({}, x, { price: Number(x.price)||0, imgs: x.imgs||[], sold_out: x.sold_out===true }); });
+    ITEMS = (i.data||[]).map(function(x){ return Object.assign({}, x, { price: Number(x.price)||0, imgs: x.imgs||[], sold_out: x.sold_out===true, free_shipping: x.free_shipping===true }); });
     ITEMS.sort(function(a,b){ return Number(a.sold_out)-Number(b.sold_out) || (b.sort_order||0)-(a.sort_order||0); });
     initFilters();
     render();

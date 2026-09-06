@@ -98,6 +98,16 @@
   .soldout-slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.18s}
   .soldout-toggle input:checked + .soldout-slider{background:#777}
   .soldout-toggle input:checked + .soldout-slider:before{transform:translateX(18px)}
+  .shipping-field{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 14px;background:#f4f8f4;border:1px solid #d8e7da;border-radius:10px}
+  .shipping-copy{display:flex;flex-direction:column;gap:3px}
+  .shipping-copy strong{font-size:13px;color:#356640;font-weight:600}
+  .shipping-copy span{font-size:11px;color:#6f8873}
+  .shipping-toggle{position:relative;width:42px;height:24px;flex:0 0 auto}
+  .shipping-toggle input{position:absolute;opacity:0;width:0;height:0}
+  .shipping-slider{position:absolute;inset:0;background:#cbdccf;border-radius:999px;cursor:pointer;transition:.18s}
+  .shipping-slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.18s}
+  .shipping-toggle input:checked + .shipping-slider{background:#4f8b5b}
+  .shipping-toggle input:checked + .shipping-slider:before{transform:translateX(18px)}
 
   @media(max-width:640px){
     .grid2{grid-template-columns:1fr}
@@ -314,7 +324,7 @@ async function saveSort(id, value){
 $("addItemBtn").addEventListener("click", function(){ openItemModal(null); });
 
 function openItemModal(id){
-  var it = id ? ITEMS.find(function(x){return x.id===id;}) : { hotel_id:"", name:"", no:"", specs:"", price:0, descr:"", imgs:[], sold_out:false };
+  var it = id ? ITEMS.find(function(x){return x.id===id;}) : { hotel_id:"", name:"", no:"", specs:"", price:0, descr:"", imgs:[], sold_out:false, free_shipping:false };
   var imgs = it.imgs||[];
   var hotelOpts = HOTELS.map(function(h){
     return '<option value="'+h.id+'"'+(h.id===it.hotel_id?' selected':'')+'>'+h.name+(h.region?'（'+h.region+'）':'')+'</option>';
@@ -340,6 +350,9 @@ function openItemModal(id){
   soldOutField.className = "field soldout-field";
   soldOutField.innerHTML = '<div class="soldout-copy"><strong>售罄</strong><span>保存后前台自动置底并灰度显示</span></div><label class="soldout-toggle"><input id="f_sold_out" type="checkbox"'+(it.sold_out?' checked':'')+'><span class="soldout-slider"></span></label>';
   $("modalContent").insertBefore(soldOutField, $("modalContent").querySelector(".modal-foot"));
+  $("modalContent").insertAdjacentHTML("beforeend", '<div class="field shipping-field"><div class="shipping-copy"><strong>包邮</strong><span>在前台商品卡片右侧显示包邮</span></div><label class="shipping-toggle"><input id="f_free_shipping" type="checkbox"'+(it.free_shipping?' checked':'')+'><span class="shipping-slider"></span></label></div>');
+  var shippingField = $("modalContent").lastElementChild;
+  $("modalContent").insertBefore(shippingField, $("modalContent").querySelector(".modal-foot"));
   $("modalMask").classList.add("show");
   $("m_cancel").onclick = closeModal;
 
@@ -387,6 +400,7 @@ function openItemModal(id){
       descr: $("f_desc").value.trim(),
       imgs: curImgs,
       sold_out: $("f_sold_out").checked,
+      free_shipping: $("f_free_shipping").checked,
       sort_order: parseInt($("f_sort").value)||0
     };
     var r;
