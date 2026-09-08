@@ -324,7 +324,7 @@ async function saveSort(id, value){
 $("addItemBtn").addEventListener("click", function(){ openItemModal(null); });
 
 function openItemModal(id){
-  var it = id ? ITEMS.find(function(x){return x.id===id;}) : { hotel_id:"", name:"", no:"", specs:"", price:0, descr:"", imgs:[], sold_out:false, free_shipping:false };
+  var it = id ? ITEMS.find(function(x){return x.id===id;}) : { hotel_id:"", name:"", no:"", specs:"", price:0, agent_price:0, descr:"", imgs:[], sold_out:false, free_shipping:false };
   var imgs = it.imgs||[];
   var hotelOpts = HOTELS.map(function(h){
     return '<option value="'+h.id+'"'+(h.id===it.hotel_id?' selected':'')+'>'+h.name+(h.region?'（'+h.region+'）':'')+'</option>';
@@ -353,6 +353,9 @@ function openItemModal(id){
   $("modalContent").insertAdjacentHTML("beforeend", '<div class="field shipping-field"><div class="shipping-copy"><strong>包邮</strong><span>在前台商品卡片右侧显示包邮</span></div><label class="shipping-toggle"><input id="f_free_shipping" type="checkbox"'+(it.free_shipping?' checked':'')+'><span class="shipping-slider"></span></label></div>');
   var shippingField = $("modalContent").lastElementChild;
   $("modalContent").insertBefore(shippingField, $("modalContent").querySelector(".modal-foot"));
+  $("modalContent").insertAdjacentHTML("beforeend", '<div class="field"><label>代理价（登录代理账号后可见）</label><input id="f_agent_price" type="number" step="0.01" value="'+(Number(it.agent_price)||0)+'"></div>');
+  var agentPriceField = $("modalContent").lastElementChild;
+  $("modalContent").insertBefore(agentPriceField, $("modalContent").querySelector(".modal-foot"));
   $("modalMask").classList.add("show");
   $("m_cancel").onclick = closeModal;
 
@@ -396,6 +399,7 @@ function openItemModal(id){
       name: name,
       specs: $("f_specs").value.trim(),
       price: parseFloat($("f_price").value)||0,
+      agent_price: parseFloat($("f_agent_price").value)||0,
       no: $("f_no").value.trim(),
       descr: $("f_desc").value.trim(),
       imgs: curImgs,
